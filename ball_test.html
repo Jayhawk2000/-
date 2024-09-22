@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>模拟球事件</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f0f0f0;
+        }
+        .container {
+            margin: 50px auto;
+            width: 500px;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .title {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #D4AF37;
+        }
+        .ball-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            margin: 10px 0;
+        }
+        .ball {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            margin: 5px;
+        }
+        .ball.red {
+            background-color: #ff4d4d;
+        }
+        .ball.yellow {
+            background-color: #ffd700;
+        }
+        .buttons {
+            margin: 20px 0;
+        }
+        .buttons button {
+            margin: 0 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            background-color: #007bff;
+            color: white;
+        }
+        .buttons button:hover {
+            background-color: #0056b3;
+        }
+        .result-number {
+            font-size: 18px;
+            color: black;
+            margin-top: 20px;
+        }
+        .chart-container {
+            display: flex;
+            justify-content: space-around;
+            align-items: flex-end;
+            height: 300px;
+            margin-top: 30px;
+            border: 1px solid #ddd;
+        }
+        .bar {
+            width: 100px;
+            transition: height 1s ease-out;
+        }
+        .bar.red {
+            background-color: #ff4d4d;
+        }
+        .bar.yellow {
+            background-color: #ffd700;
+        }
+        .bar-label {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            padding: 0 20px;
+            margin-top: 10px;
+        }
+        .red-label {
+            margin-left: 60px; /* 红球直方图左移 */
+        }
+        .yellow-label {
+            margin-right: 110px; /* 黄球直方图右移 */
+        }
+        /* 新增样式：重置按钮增加上边距 */
+        .reset-button {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="title">模拟球事件</div>
+
+        <!-- 红球添加区域 -->
+        <div class="buttons">
+            <button onclick="addBall('red')">添加红球</button>
+        </div>
+        <div class="ball-container" id="redBallContainer"></div>
+
+        <!-- 黄球添加区域 -->
+        <div class="buttons">
+            <button onclick="addBall('yellow')">添加黄球</button>
+        </div>
+        <div class="ball-container" id="yellowBallContainer"></div>
+
+        <!-- 显示模拟的结果 -->
+        <div class="result-number">
+            红球次数: <span id="redCount">0</span> <br>
+            黄球次数: <span id="yellowCount">0</span>
+        </div>
+
+        <!-- 直方图容器 -->
+        <div class="chart-container">
+            <div class="bar red" id="redBar" style="height: 0"></div>
+            <div class="bar yellow" id="yellowBar" style="height: 0"></div>
+        </div>
+        <div class="bar-label">
+            <span class="red-label">红球直方图</span>
+            <span class="yellow-label">黄球直方图</span>
+        </div>
+
+        <!-- 按钮区域 -->
+        <div class="buttons">
+            <button onclick="simulate(100)">模拟100次</button>
+            <button onclick="simulate(1000)">模拟1000次</button>
+            <button onclick="simulate(10000)">模拟10000次</button>
+        </div>
+
+        <!-- 重置按钮单独一行，添加上边距 -->
+        <div class="buttons reset-button">
+            <button onclick="resetCounts()">重置</button>
+        </div>
+    </div>
+
+    <script>
+        let redBallCount = 0;
+        let yellowBallCount = 0;
+        let redCount = 0;
+        let yellowCount = 0;
+
+        // 动态添加红球或黄球
+        function addBall(color) {
+            const ballContainer = color === 'red' ? document.getElementById('redBallContainer') : document.getElementById('yellowBallContainer');
+            const ball = document.createElement('div');
+            ball.classList.add('ball', color);
+
+            if (color === 'red') {
+                redBallCount++;
+            } else {
+                yellowBallCount++;
+            }
+
+            ballContainer.appendChild(ball);
+        }
+
+        // 模拟摸球的过程
+        function simulate(loopTimes) {
+            if (redBallCount === 0 && yellowBallCount === 0) {
+                alert("请先添加红球和黄球！");
+                return;
+            }
+
+            const totalBalls = redBallCount + yellowBallCount;
+            const redProbability = redBallCount / totalBalls;
+
+            redCount = 0;
+            yellowCount = 0;
+
+            // 进行N次模拟
+            for (let i = 0; i < loopTimes; i++) {
+                const randomValue = Math.random();
+                if (randomValue < redProbability) {
+                    redCount++;
+                } else {
+                    yellowCount++;
+                }
+            }
+
+            // 更新红球和黄球的计数显示
+            document.getElementById("redCount").textContent = redCount;
+            document.getElementById("yellowCount").textContent = yellowCount;
+
+            // 动态更新柱状图
+            updateBars(redCount, yellowCount, loopTimes);
+        }
+
+        // 更新柱状图
+        function updateBars(redCount, yellowCount, loopTimes) {
+            // 计算红球和黄球的百分比
+            const redPercentage = (redCount / loopTimes) * 100;
+            const yellowPercentage = (yellowCount / loopTimes) * 100;
+
+            // 动态设置柱子的高度（百分比，最大高度为300px）
+            document.getElementById("redBar").style.height = `${redPercentage}%`;
+            document.getElementById("yellowBar").style.height = `${yellowPercentage}%`;
+        }
+
+        // 重置所有数据
+        function resetCounts() {
+            redBallCount = 0;
+            yellowBallCount = 0;
+            redCount = 0;
+            yellowCount = 0;
+
+            // 清空页面上的红球和黄球
+            document.getElementById('redBallContainer').innerHTML = '';
+            document.getElementById('yellowBallContainer').innerHTML = '';
+
+            // 重置显示的结果
+            document.getElementById("redCount").textContent = redCount;
+            document.getElementById("yellowCount").textContent = yellowCount;
+
+            // 重置直方图的高度
+            document.getElementById("redBar").style.height = '0';
+            document.getElementById("yellowBar").style.height = '0';
+        }
+    </script>
+
+</body>
+</html>
